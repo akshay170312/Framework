@@ -9,7 +9,7 @@ function DamageResolver.Compute(gunConfig, context)
 		damage = damage * (gunConfig.HeadshotMultiplier or 2)
 	end
 
-	-- Distance falloff (linear after 60% of range)
+	-- Distance falloff (linear range)
 	if context.distance and gunConfig.Range then
 		local falloffStart = gunConfig.Range * 0.6
 		if context.distance > falloffStart then
