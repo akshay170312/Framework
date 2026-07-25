@@ -1,0 +1,51 @@
+local WeaponService = {}
+local WeaponConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("WeaponConfig"))
+
+local playerAmmo = {}
+local lastFired = {}
+
+function WeaponService:Fire(player, weaponName, hitPart, hitPosition)
+    local config = WeaponConfig[weaponName]
+    if not config then return end
+
+    local now = os.clock()
+    
+    -- Validate Fire Rate
+    if lastFired[player] and (now - lastFired[player]) < config.FireRate then
+        return
+    end
+    
+    -- Validate Ammo
+    if (playerAmmo[player] or config.MaxAmmo) <= 0 then
+        return
+    end
+
+    -- Validate Hit
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local distance = (character.HumanoidRootPart.Position - hitPosition).Magnitude
+    if distance > config.MaxRange then return end
+
+    -- Process Hit
+    playerAmmo[player] = (playerAmmo[player] or config.MaxAmmo) - 1
+    lastFired[player] = now
+
+    local targetChar = hitPart.Parent
+    local humanoid = targetChar:FindFirstChildOfClass("Humanoid")
+    if humanoid and targetChar ~= character then
+        humanoid:TakeDamage(config.Damage)
+    end
+
+    return true
+end
+
+function WeaponService:Reload(player, weaponName)
+    local config = WeaponConfig[weaponName]
+    if not config then return end
+    
+    playerAmmo[player] = config.MaxAmmo
+    return true
+end
+
+return WeaponService
